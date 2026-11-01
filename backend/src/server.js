@@ -39,25 +39,26 @@ app.use((req, res, next) => {
   next();
 });
 
-// API Routes
-app.get('/api/health', (req, res) => {
+// Health check endpoint (matches both /api/health and /health)
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     database: getDbStatus(),
-    aiEngine: Boolean(process.env.GEMINI_API_KEY) ? 'Gemini 1.5 Flash' : 'Built-in Culinary Rule Engine',
+    aiEngine: Boolean(process.env.GROQ_API_KEY) ? 'Groq AI (Ultra-fast LLM)' : 'Built-in Culinary Rule Engine',
   });
 });
 
-app.use('/api/inventory', inventoryRoutes);
-app.use('/api/recipes', recipeRoutes);
-app.use('/api/alerts', alertRoutes);
+// Routes (supports both /api/* and direct /* prefixes)
+app.use(['/api/inventory', '/inventory'], inventoryRoutes);
+app.use(['/api/recipes', '/recipes'], recipeRoutes);
+app.use(['/api/alerts', '/alerts'], alertRoutes);
 
 // Serve Frontend Static Build if available
 if (fs.existsSync(frontendDistPath)) {
   app.use(express.static(frontendDistPath));
   app.get('*', (req, res, next) => {
-    if (req.originalUrl.startsWith('/api')) {
+    if (req.originalUrl.startsWith('/api') || req.originalUrl.startsWith('/inventory') || req.originalUrl.startsWith('/recipes') || req.originalUrl.startsWith('/alerts')) {
       return next();
     }
     res.sendFile(path.join(frontendDistPath, 'index.html'));
@@ -73,8 +74,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-export default app;
-
 // Start Server & Connect Database
 const startServer = async () => {
   await connectDB();
@@ -84,18 +83,16 @@ const startServer = async () => {
     console.log(`
 ======================================================
   🥗 Food Optimizer Web App is running!
-  🌐 Website & API: http://localhost:${PORT}
-  📊 Health Check: http://localhost:${PORT}/api/health
-  🥦 Inventory: http://localhost:${PORT}/api/inventory
-  🔔 Alerts: http://localhost:${PORT}/api/alerts
-  🍲 Recipes: http://localhost:${PORT}/api/recipes
+  🌐 Server: http://0.0.0.0:${PORT}
+  📊 Health Check: http://0.0.0.0:${PORT}/api/health
+  🥦 Inventory: http://0.0.0.0:${PORT}/api/inventory
+  🔔 Alerts: http://0.0.0.0:${PORT}/api/alerts
+  🍲 Recipes: http://0.0.0.0:${PORT}/api/recipes
 ======================================================
     `);
   });
 };
 
-if (process.env.VERCEL !== '1') {
-  startServer();
-} else {
-  connectDB();
-}
+startServer();
+
+export default app;
