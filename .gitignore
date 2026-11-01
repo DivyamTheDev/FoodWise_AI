@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Sensitive Environment variables (Protected)
+.env
+.env.*
+.env.local
+.env.production
+.env.vercel
+backend/.env
+backend/.env.*
+frontend/.env
+frontend/.env.*
+
+# Allow example files
+!.env.example
+!backend/.env.example
+
+# Production Builds
+dist/
+frontend/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# Zip files
+*.zip
